@@ -18,6 +18,6 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to FastAPI JWT Auth app"}
+@app.get("/ping")
+def ping():
+    return {"status": "OK"}
