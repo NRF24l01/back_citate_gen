@@ -1,0 +1,351 @@
+openapi: 3.0.3
+info:
+  title: Quotes API
+  version: 1.0.0
+tags:
+  - name: Authentication
+    description: Endpoints for user authentication
+  - name: Quotes
+    description: Endpoints for managing quotes
+  - name: Moderation
+    description: Endpoints for quote moderation
+  - name: Personalized Quotes
+    description: Endpoints for personalized quote recommendations
+  - name: Public Quotes
+    description: Endpoints for accessing public quotes
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, username]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+      responses:
+        '200':
+          description: Successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        '400':
+          description: Invalid input data
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successfully logged in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        '400':
+          description: Invalid input data
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        '400':
+          description: Invalid or expired refresh token
+  /quotes:
+    post:
+      tags:
+        - Quotes
+      summary: Create a new quote
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, author]
+              properties:
+                text:
+                  type: string
+                  minLength: 5
+                author:
+                  type: string
+      responses:
+        '200':
+          description: Quote created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid input data
+  /quotes/search:
+    get:
+      tags:
+        - Quotes
+      summary: Search quotes by author or text fragment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: author
+          in: query
+          schema:
+            type: string
+        - name: text
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of matching quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    author:
+                      type: string
+                      example: "Magister"
+                    text:
+                      type: string
+                      example: "Pokaifu?"
+                    uuid:
+                      type: string
+                      format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
+        '400':
+          description: Invalid search query
+  /quotes/user:
+    get:
+      tags:
+        - Quotes
+      summary: Get user's own quotes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user's quotes including moderation status and comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    author:
+                      type: string
+                      example: "Magister"
+                    text:
+                      type: string
+                      example: "Pokaifu?"
+                    uuid:
+                      type: string
+                      format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
+                    moderaion:
+                      type: string
+                      example: "moderated"
+                    moderator_comment:
+                      type: string
+                      example: "hahahahahahahaha"
+        '400':
+          description: Invalid request
+  /moderation/quotes:
+    get:
+      tags:
+        - Moderation
+      summary: Get list of unmoderated quotes
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of unmoderated quotes with auto-moderation score
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    author:
+                      type: string
+                      example: "Magister"
+                    text:
+                      type: string
+                      example: "Pokaifu?"
+                    uuid:
+                      type: string
+                      format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
+                    predict:
+                      type: integer
+                      example: 100
+        '400':
+          description: Invalid request
+  /moderation/review:
+    post:
+      tags:
+        - Moderation
+      summary: Moderate a quote
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, result, comment]
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                result:
+                  type: string
+                  enum: [approve, reject]
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Quote moderated
+        '400':
+          description: Invalid input
+  /quotes/personal:
+    get:
+      tags:
+        - Personalized Quotes
+      summary: Generate a personalized quote
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Generated quote with UUID, text, and author
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+                  author:
+                    type: string
+                  uuid:
+                    type: string
+                    format: uuid
+        '400':
+          description: Error in quote generation
+  /quotes/personal/history:
+    get:
+      tags:
+        - Personalized Quotes
+      summary: Get all received personalized quotes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: author
+          in: query
+          schema:
+            type: string
+        - name: text
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of received personalized quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    author:
+                      type: string
+                      example: "Magister"
+                    text:
+                      type: string
+                      example: "Pokaifu?"
+                    uuid:
+                      type: string
+                      format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
+        '400':
+          description: Invalid request
+  /quotes/public:
+    get:
+      tags:
+        - Public Quotes
+      summary: Get all moderated quotes
+      responses:
+        '200':
+          description: List of all approved quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    author:
+                      type: string
+                      example: "Magister"
+                    text:
+                      type: string
+                      example: "Pokaifu?"
+                    uuid:
+                      type: string
+                      format: uuid
+                      example: "550e8400-e29b-41d4-a716-446655440000"
