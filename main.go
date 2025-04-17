@@ -1,8 +1,9 @@
 package main
 
 import (
+	"quoter_back/handlers"
 	"quoter_back/middleware"
-	//"quoter_back/models"
+	"quoter_back/models"
 	"quoter_back/routes"
 	"quoter_back/schemas"
 
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	//db := models.RegisterPostgres()
+	db := models.RegisterPostgres()
 
 	validater := validator.New()
 	schemas.RegisterCustomValidations(validater)
@@ -29,7 +30,8 @@ func main() {
 		return c.JSON(200, schemas.Message{Status: "QUOTES!"})
 	})
 
-	routes.RegisterRoutes(e)
+	handler := &handlers.Handler{DB: db}
+	routes.RegisterRoutes(e, handler)
 	
 	e.Logger.Fatal(e.Start(":1323"))
 }
