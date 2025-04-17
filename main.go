@@ -1,27 +1,35 @@
 package main
 
 import (
+	"quoter_back/middleware"
+	//"quoter_back/models"
+	"quoter_back/routes"
 	"quoter_back/schemas"
 
 	"github.com/go-playground/validator"
-	"github.com/labstack/echo/v4"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/labstack/echo/v4"
+	echoMw "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
-	dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	//db := models.RegisterPostgres()
 
-	validate := validator.New()
-	schemas.RegisterCustomValidations(validate)
+	validater := validator.New()
+	schemas.RegisterCustomValidations(validater)
 
 	e := echo.New()
+
+	e.Validator = &middleware.CustomValidator{Validator: validater}
+
+	e.Use(echoMw.Logger())
+    e.Use(echoMw.Recover())
 
 	e.GET("/ping", func(c echo.Context) error {
 		return c.JSON(200, schemas.Message{Status: "QUOTES!"})
 	})
+
+	routes.RegisterRoutes(e)
 	
 	e.Logger.Fatal(e.Start(":1323"))
 }
