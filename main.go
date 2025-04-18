@@ -9,11 +9,20 @@ import (
 
 	"github.com/go-playground/validator"
 
+	"log"
+
+	"github.com/joho/godotenv"
+
 	"github.com/labstack/echo/v4"
 	echoMw "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("failed to load .env: %v", err)
+	}
+
 	db := models.RegisterPostgres()
 
 	validater := validator.New()
