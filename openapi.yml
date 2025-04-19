@@ -47,6 +47,10 @@ paths:
                 properties:
                   access_token:
                     type: string
+                  refresh_token:
+                    type: string
+                  message:
+                    type: string
         '400':
           description: Invalid input data
   /auth/login:
@@ -76,6 +80,10 @@ paths:
                 type: object
                 properties:
                   access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  message:
                     type: string
         '400':
           description: Invalid input data
