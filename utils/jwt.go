@@ -8,7 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// GenerateAccessToken generates a JWT access token
 func GenerateAccessToken(userID string) (string, error) {
     claims := jwt.MapClaims{
         "user_id": userID,
@@ -16,10 +15,9 @@ func GenerateAccessToken(userID string) (string, error) {
         "iat":     time.Now().Unix(),
     }
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    return token.SignedString(os.Getenv("PASSWORD_JWT_ACCESS_SECRET"))
+    return token.SignedString([]byte(os.Getenv("PASSWORD_JWT_ACCESS_SECRET")))
 }
 
-// GenerateRefreshToken generates a JWT refresh token
 func GenerateRefreshToken(userID string) (string, error) {
     claims := jwt.MapClaims{
         "user_id": userID,
@@ -27,10 +25,9 @@ func GenerateRefreshToken(userID string) (string, error) {
         "iat":     time.Now().Unix(),
     }
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    return token.SignedString(os.Getenv("PASSWORD_JWT_REFRESH_SECRET"))
+    return token.SignedString([]byte(os.Getenv("PASSWORD_JWT_REFRESH_SECRET")))
 }
 
-// ValidateToken validates a JWT token and returns the claims
 func ValidateToken(tokenString string, secret []byte) (jwt.MapClaims, error) {
     token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
         if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

@@ -21,7 +21,7 @@ func (h *Handler) UserRegister(c echo.Context) error {
 		if email_result.Error == gorm.ErrRecordNotFound {
 			log.Println("Email is available.")
 		} else {
-			log.Printf("Error checking email: %v", email_result.Error)
+			log.Fatalf("Error checking email: %v", email_result.Error)
 			return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while checking the email" })
 		}
 	} else {
@@ -34,7 +34,7 @@ func (h *Handler) UserRegister(c echo.Context) error {
 		if nick_result.Error == gorm.ErrRecordNotFound {
 			log.Println("Username is available.")
 		} else {
-			log.Printf("Error checking username: %v", nick_result.Error)
+			log.Fatalf("Error checking username: %v", nick_result.Error)
 			return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while checking the username" })
 		}
 	} else {
@@ -51,10 +51,22 @@ func (h *Handler) UserRegister(c echo.Context) error {
 	}
 
 	if err := h.DB.Create(&user).Error; err != nil {
-		log.Printf("Error creating user: %v", err)
+		log.Fatalf("Error creating user: %v", err)
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while creating the user" })
 	}
 	log.Printf("User created successfully: %+v", user)
 
-	return c.JSON(201, schemas.JwtToken{ Token: "fig tebe a ne token", Message: "User registered successfully" })
+	refreshToken, err := utils.GenerateRefreshToken(user.ID.String())
+    if err != nil {
+        log.Fatalf("Error generating refresh token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating refresh token" })
+    }
+
+	accessToken, err := utils.GenerateAccessToken(user.ID.String())
+    if err != nil {
+        log.Fatalf("Error generating access token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
+    }
+
+	return c.JSON(201, schemas.JwtTokenPair{ AccessToken: accessToken, RefreshToken: refreshToken, Message: "User registered successfully" })
 }
