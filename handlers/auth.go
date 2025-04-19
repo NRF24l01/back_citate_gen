@@ -70,3 +70,33 @@ func (h *Handler) UserRegister(c echo.Context) error {
 
 	return c.JSON(201, schemas.JwtTokenPair{ AccessToken: accessToken, RefreshToken: refreshToken, Message: "User registered successfully" })
 }
+
+func (h *Handler) UserLogin(c echo.Context) error {
+	user_data := c.Get("validatedBody").(*schemas.LoginUser)
+	log.Printf("Logging in user: %+v", user_data)
+
+	var user models.User
+	if err := h.DB.Where("email = ?", user_data.Email).First(&user).Error; err != nil {
+		log.Printf("Error finding user: %v", err)
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Invalid email or password" })
+	}
+
+	if !utils.CheckPassword(user_data.Password, user.Password) {
+		log.Println("Invalid password")
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Invalid email or password" })
+	}
+
+	refreshToken, err := utils.GenerateRefreshToken(user.ID.String())
+	if err != nil {
+		log.Fatalf("Error generating refresh token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating refresh token" })
+	}
+
+	accessToken, err := utils.GenerateAccessToken(user.ID.String())
+	if err != nil {
+		log.Fatalf("Error generating access token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
+	}
+
+	return c.JSON(200, schemas.JwtTokenPair{ AccessToken: accessToken, RefreshToken: refreshToken, Message: "User logged in successfully" })
+}

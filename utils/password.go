@@ -3,7 +3,6 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"os"
 
 	"golang.org/x/crypto/argon2"
@@ -27,11 +26,7 @@ func HashPassword(password string) string {
 }
 
 // CheckPassword verifies if the provided password matches the hashed password using the same salt.
-func CheckPassword(password, hashedPassword string) (bool, error) {
-    if password == "" || hashedPassword == "" {
-        return false, errors.New("password, salt, or hashed password cannot be empty")
-    }
-
+func CheckPassword(password, hashedPassword string) (bool) {
     computedHash := HashPassword(password)
-    return computedHash == hashedPassword, nil
+    return computedHash == hashedPassword
 }
