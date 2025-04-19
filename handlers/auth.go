@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 
@@ -68,7 +70,15 @@ func (h *Handler) UserRegister(c echo.Context) error {
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
     }
 
-	return c.JSON(201, schemas.JwtTokenPair{ AccessToken: accessToken, RefreshToken: refreshToken, Message: "User registered successfully" })
+	// Set the refresh token in an HttpOnly cookie
+	cookie := new(http.Cookie)
+	cookie.Name = "refresh_token"
+	cookie.Value = refreshToken
+	cookie.HttpOnly = true
+	cookie.Path = "/"
+	c.SetCookie(cookie)
+
+	return c.JSON(201, schemas.JwtAccessToken{ AccessToken: accessToken, Message: "User registered successfully" })
 }
 
 func (h *Handler) UserLogin(c echo.Context) error {
@@ -98,5 +108,13 @@ func (h *Handler) UserLogin(c echo.Context) error {
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
 	}
 
-	return c.JSON(200, schemas.JwtTokenPair{ AccessToken: accessToken, RefreshToken: refreshToken, Message: "User logged in successfully" })
+	// Set the refresh token in an HttpOnly cookie
+	cookie := new(http.Cookie)
+	cookie.Name = "refresh_token"
+	cookie.Value = refreshToken
+	cookie.HttpOnly = true
+	cookie.Path = "/"
+	c.SetCookie(cookie)
+
+	return c.JSON(200, schemas.JwtAccessToken{ AccessToken: accessToken, Message: "User logged in successfully" })
 }
