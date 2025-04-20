@@ -1,0 +1,32 @@
+name: Backend build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend 
+
+    steps:
+      - name: Checkout репозиторий
+        uses: actions/checkout@v4
+
+      - name: Логин в GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Приведение имени репозитория к нижнему регистру
+        run: echo "REPO_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Собираем Docker-образ
+        run: |
+          docker build \
+            -t ghcr.io/${{ env.REPO_NAME }}/backend .
+
+      - name: Пушим образ в GHCR
+        run: docker push ghcr.io/${{ env.REPO_NAME }}/backend
