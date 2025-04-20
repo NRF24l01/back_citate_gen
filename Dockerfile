@@ -16,7 +16,6 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat curl
 
 COPY --from=builder /app/main .
-COPY .env .
 
 RUN chmod +x ./main
 
