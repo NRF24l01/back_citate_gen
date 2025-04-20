@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"log"
+	"os"
 
 	"quoter_back/models"
 	"quoter_back/schemas"
@@ -78,6 +79,12 @@ func (h *Handler) UserRegister(c echo.Context) error {
 	cookie.Path = "/"
 	c.SetCookie(cookie)
 
+	user.RefreshToken = refreshToken
+	if err := h.DB.Save(&user).Error; err != nil {
+		log.Printf("Error saving refresh token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while saving refresh token" })
+	}
+
 	return c.JSON(201, schemas.JwtAccessToken{ AccessToken: accessToken, Message: "User registered successfully" })
 }
 
@@ -116,5 +123,50 @@ func (h *Handler) UserLogin(c echo.Context) error {
 	cookie.Path = "/"
 	c.SetCookie(cookie)
 
+	user.RefreshToken = refreshToken
+	if err := h.DB.Save(&user).Error; err != nil {
+		log.Printf("Error saving refresh token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while saving refresh token" })
+	}
+
 	return c.JSON(200, schemas.JwtAccessToken{ AccessToken: accessToken, Message: "User logged in successfully" })
+}
+
+func (h *Handler) TokenRefresh(c echo.Context) error {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		log.Printf("Error getting refresh token from cookie: %v", err)
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Unauthorized" })
+	}
+
+	jwtClaims, err := utils.ValidateToken(refreshToken.Value, []byte(os.Getenv("PASSWORD_JWT_REFRESH_SECRET")))
+	if err != nil {
+		log.Printf("Invalid refresh token: %v", err)
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Unauthorized" })
+	}
+
+	userID, ok := jwtClaims["user_id"].(string)
+	if !ok {
+		log.Println("Invalid user ID in token claims")
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Unauthorized" })
+	}
+	var user models.User
+
+	if err := h.DB.Where("refresh_token = ?", refreshToken.Value).First(&user).Error; err != nil {
+		log.Printf("Error finding user: %v", err)
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Unauthorized" })
+	}
+
+	if user.ID.String() != userID {
+		log.Println("User ID in token does not match user ID in database")
+		return c.JSON(401, schemas.ErrorMessage{ Error: "Unauthorized" })
+	}
+
+	accessToken, err := utils.GenerateAccessToken(userID)
+	if err != nil {
+		log.Fatalf("Error generating access token: %v", err)
+		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
+	}
+
+	return c.JSON(200, schemas.JwtAccessToken{ AccessToken: accessToken, Message: "Access token refreshed successfully" })
 }

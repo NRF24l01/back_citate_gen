@@ -18,4 +18,6 @@ func RegisterRoutes(e *echo.Echo, h *handlers.Handler) {
 	group.POST("/login", h.UserLogin, middleware.ValidationMiddleware(func() interface{} { 
 		return &schemas.LoginUser{}
 	}))
+
+	group.POST("/refresh", h.TokenRefresh)
 }
