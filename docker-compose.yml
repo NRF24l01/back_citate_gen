@@ -1,0 +1,54 @@
+networks:
+  quoter-net:
+    driver: bridge
+
+services:
+  quoter-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:1323/ping"]
+      interval: 10s
+      retries: 30
+      timeout: 3s
+      start_period: 10s
+    restart: "no"
+    networks:
+      - quoter-net
+    ports:
+      - "3001:1323"
+    env_file:
+      - .env
+    environment:
+      - RUNTIME_PRODUCTION=true
+      - POSTGRES_HOST=postgres-quoter
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    depends_on:
+      postgres-quoter:
+        condition: service_healthy
+
+  postgres-quoter:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    expose:
+      - "5432"
+    networks:
+      - quoter-net
+    volumes:
+      - postgres_quoter_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+    command: ["postgres", "-c", "listen_addresses=*"]
+
+volumes:
+  postgres_quoter_data:

@@ -10,6 +10,7 @@ import (
 	"github.com/go-playground/validator"
 
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 
@@ -18,9 +19,11 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("failed to load .env: %v", err)
+	if os.Getenv("RUNTIME_PRODUCTION") != "true" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatalf("failed to load .env: %v", err)
+		}
 	}
 
 	db := models.RegisterPostgres()
