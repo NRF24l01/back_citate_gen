@@ -1,4 +1,7 @@
 openapi: 3.0.3
+servers:
+  - url: http://localhost:1323
+    description: Local development server
 info:
   title: Quotes API
   version: 1.0.0
