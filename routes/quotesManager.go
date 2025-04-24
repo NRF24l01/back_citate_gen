@@ -14,5 +14,6 @@ func RegisterQuoteManageRoutes(e *echo.Echo, h *handlers.Handler) {
 	group.POST("", h.QuoteCreate, middleware.ValidationMiddleware(func() interface{} {
 		return &schemas.QuoteCreate{}
 	}), middleware.JWTMiddleware())
-
+	
+	group.GET("/user", h.QuotesByUser, middleware.JWTMiddleware())
 }

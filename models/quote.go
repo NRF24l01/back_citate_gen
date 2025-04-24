@@ -12,4 +12,6 @@ type Quote struct {
 
 	CreatorID string `json:"creator_id" gorm:"not null"`
 	Creator   User `json:"creator" gorm:"foreignKey:CreatorID"`
+
+	Moderation []Moderation `json:"moderation" gorm:"foreignKey:QuoteID"`
 }

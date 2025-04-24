@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"log"
+
 	"github.com/labstack/echo/v4"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 
 	"quoter_back/models"
 	"quoter_back/schemas"
@@ -25,4 +28,52 @@ func (h *Handler) QuoteCreate(c echo.Context) error {
 		return c.JSON(500, schemas.ErrorMessage{Error: "An error occurred while creating the quote"})
 	}
 	return c.JSON(201, schemas.SuccessCreateMessage{Status: "Quote created successfully", ID: quote.ID.String()})
+}
+func (h *Handler) QuotesByUser(c echo.Context) error {
+	user_id := c.Get("user_id").(string)
+
+	var quotes []models.Quote
+	if err := h.DB.Preload("Moderation", func(db *gorm.DB) *gorm.DB {
+		return db.Order("moderations.updated_at DESC").Limit(1)
+	}).Where("creator_id = ?", user_id).Find(&quotes).Error; err != nil {
+		log.Printf("Error fetching quotes for user %s: %v", user_id, err)
+		return c.JSON(500, schemas.ErrorMessage{Error: "An error occurred while fetching quotes"})
+	}
+
+	type ModerationResponse struct {
+		ID             string `json:"id"`
+		Status         string `json:"status"`
+		ModeratorComment string `json:"comment"`
+	}
+
+	type QuoteResponse struct {
+		ID         string              `json:"id"`
+		Author     string              `json:"author"`
+		Text       string              `json:"text"`
+		Tags       []string            `json:"tags"`
+		Moderation *ModerationResponse `json:"moderation,omitempty"`
+	}
+
+	var response []QuoteResponse
+	for _, quote := range quotes {
+		var moderationResponse *ModerationResponse
+		if len(quote.Moderation) > 0 {
+			moderation := quote.Moderation[0]
+			moderationResponse = &ModerationResponse{
+				ID:             moderation.ID.String(),
+				Status:         moderation.Status,
+				ModeratorComment: moderation.ModeratorComment,
+			}
+		}
+
+		response = append(response, QuoteResponse{
+			ID:         quote.ID.String(),
+			Author:     quote.AuthorName,
+			Text:       quote.QuoteText,
+			Tags:       utils.FromJSONToStringArray(quote.Tags),
+			Moderation: moderationResponse,
+		})
+	}
+
+	return c.JSON(200, response)
 }
