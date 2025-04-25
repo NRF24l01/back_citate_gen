@@ -10,7 +10,12 @@ import (
 )
 
 // JWTMiddleware создает middleware для проверки JWT токена
-func JWTMiddleware() echo.MiddlewareFunc {
+func JWTMiddleware(optionalRole ...string) echo.MiddlewareFunc {
+    var requiredRole string
+    if len(optionalRole) > 0 {
+        requiredRole = optionalRole[0]
+    }
+
     return func(next echo.HandlerFunc) echo.HandlerFunc {
         return func(c echo.Context) error {
             // Извлекаем токен из заголовка Authorization
@@ -40,6 +45,14 @@ func JWTMiddleware() echo.MiddlewareFunc {
             userID, ok := claims["user_id"].(string)
             if !ok {
                 return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid token claims"})
+            }
+
+            // Если передан requiredRole, проверяем его
+            if requiredRole != "" {
+                role, ok := claims["role"].(string)
+                if !ok || role != requiredRole {
+                    return c.JSON(http.StatusForbidden, map[string]string{"error": "insufficient permissions"})
+                }
             }
 
             // Передаем user_id в контекст

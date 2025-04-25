@@ -8,9 +8,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateAccessToken(userID string) (string, error) {
+func GenerateAccessToken(userID string, role ...string) (string, error) {
+    userRole := "user"
+    if len(role) > 0 && role[0] != "" {
+        userRole = role[0]
+    }
+    
     claims := jwt.MapClaims{
         "user_id": userID,
+        "role":    userRole,
         "exp":     time.Now().Add(15 * time.Minute).Unix(), // Access token expires in 15 minutes
         "iat":     time.Now().Unix(),
     }
