@@ -65,7 +65,7 @@ func (h *Handler) UserRegister(c echo.Context) error {
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating refresh token" })
     }
 
-	accessToken, err := utils.GenerateAccessToken(user.ID.String())
+	accessToken, err := utils.GenerateAccessToken(user.ID.String(), user.Role)
     if err != nil {
         log.Fatalf("Error generating access token: %v", err)
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
@@ -109,7 +109,7 @@ func (h *Handler) UserLogin(c echo.Context) error {
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating refresh token" })
 	}
 
-	accessToken, err := utils.GenerateAccessToken(user.ID.String())
+	accessToken, err := utils.GenerateAccessToken(user.ID.String(), user.Role)
 	if err != nil {
 		log.Fatalf("Error generating access token: %v", err)
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
@@ -162,7 +162,7 @@ func (h *Handler) TokenRefresh(c echo.Context) error {
 		return c.JSON(401, schemas.ErrorMessage{ Error: "Unauthorized" })
 	}
 
-	accessToken, err := utils.GenerateAccessToken(userID)
+	accessToken, err := utils.GenerateAccessToken(userID, user.Role)
 	if err != nil {
 		log.Fatalf("Error generating access token: %v", err)
 		return c.JSON(500, schemas.ErrorMessage{ Error: "An error occurred while generating access token" })
