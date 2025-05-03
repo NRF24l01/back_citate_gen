@@ -9,4 +9,5 @@ import (
 func RegisterRoutes(e *echo.Echo, h *handlers.Handler) {
 	RegisterAuthRoutes(e, h)
 	RegisterQuoteManageRoutes(e, h)
+	RegisterQuoteModerationRoutes(e, h)
 }
