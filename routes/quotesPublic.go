@@ -10,4 +10,5 @@ func RegisterQuotePublicRoutes(e *echo.Echo, h *handlers.Handler) {
 	group := e.Group("/quotes/public")
 
 	group.GET("", h.PublicGetList)
+	group.GET("/random", h.PublicGetRandom)
 }
