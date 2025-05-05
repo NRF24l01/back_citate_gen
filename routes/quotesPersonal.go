@@ -11,4 +11,5 @@ func RegisterQuotePersonalRoutes(e *echo.Echo, h *handlers.Handler) {
 	group := e.Group("/quotes/personal")
 
 	group.GET("", h.GetPersonalRandom, middleware.JWTMiddleware())
+	group.GET("/history", h.GetPersonalQuotesHistory, middleware.JWTMiddleware())
 }

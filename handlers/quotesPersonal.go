@@ -23,7 +23,7 @@ func (h *Handler) GetPersonalRandom(c echo.Context) error {
 	}
 
 	if err := h.DB.Table("quotes").
-		Select("quotes.id, quotes.quote_text AS text, quotes.author_name AS author, quotes.tags").
+		Select("quotes.id, quotes.quote_text AS text, quotes.author_name AS author, COALESCE(quotes.tags, '[]') AS tags").
 		Joins("JOIN moderations ON quotes.id = moderations.quote_id").
 		Where("moderations.status = ?", "approved").
 		Where("quotes.id NOT IN (?)", h.DB.Table("quote_for_users").Select("quote_id").Where("asker_id = ?", userID)).
@@ -52,7 +52,28 @@ func (h *Handler) GetPersonalRandom(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, schemas.ErrorMessage{Error: "An error occurred while recording the quote"})
 	}
 
-	// No conversion needed as quote.Tags is already []string
-
 	return c.JSON(http.StatusOK, quote)
+}
+
+func (h *Handler) GetPersonalQuotesHistory(c echo.Context) error {
+	userID := c.Get("user_id").(string)
+
+	var quotes []struct {
+		ID     string   `json:"id"`
+		Text   string   `json:"text"`
+		Author string   `json:"author"`
+		Tags   []string `json:"tags"`
+	}
+
+	if err := h.DB.Table("quotes").
+		Select("quotes.id, quotes.quote_text AS text, quotes.author_name AS author, quotes.tags").
+		Joins("JOIN quote_for_users ON quotes.id = quote_for_users.quote_id").
+		Where("quote_for_users.asker_id = ?", userID).
+		Order("quote_for_users.created_at DESC").
+		Scan(&quotes).Error; err != nil {
+		log.Printf("Error fetching user's quote history: %v", err)
+		return c.JSON(http.StatusInternalServerError, schemas.ErrorMessage{Error: "An error occurred while fetching the quote history"})
+	}
+
+	return c.JSON(http.StatusOK, quotes)
 }
