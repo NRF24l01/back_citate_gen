@@ -38,6 +38,24 @@ func main() {
 	e.Use(echoMw.Logger())
     e.Use(echoMw.Recover())
 
+	if os.Getenv("RUNTIME_PRODUCTION") != "true" {
+		// Add CORS middleware
+		e.Use(echoMw.CORSWithConfig(echoMw.CORSConfig{
+			AllowOrigins: []string{"http://localhost:5173"}, // Replace with your frontend's origin
+			AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+			AllowCredentials: true,
+		}))
+	} else {
+		// Add CORS middleware
+		e.Use(echoMw.CORSWithConfig(echoMw.CORSConfig{
+			AllowOrigins: []string{"https://quoter.snnlab.ru/"}, // Replace with your frontend's origin
+			AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+			AllowCredentials: true,
+		}))
+	}
+
 	e.GET("/ping", func(c echo.Context) error {
 		return c.JSON(200, schemas.Message{Status: "QUOTES!"})
 	})
