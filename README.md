@@ -21,7 +21,7 @@ This project is a backend service for generating citations. It provides an API t
     ```
 3. Install dependencies:
     ```bash
-    go mod tidy
+    go mod download
     ```
 4. Run in dev mode
     ```bash
