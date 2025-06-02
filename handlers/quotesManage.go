@@ -34,7 +34,7 @@ func (h *Handler) QuotesByUser(c echo.Context) error {
 
 	var quotes []models.Quote
 	if err := h.DB.Preload("Moderation", func(db *gorm.DB) *gorm.DB {
-		return db.Order("moderations.updated_at DESC").Limit(1)
+		return db.Order("moderations.updated_at DESC")
 	}).Where("creator_id = ?", user_id).Find(&quotes).Error; err != nil {
 		log.Printf("Error fetching quotes for user %s: %v", user_id, err)
 		return c.JSON(500, schemas.ErrorMessage{Error: "An error occurred while fetching quotes"})
