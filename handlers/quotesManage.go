@@ -41,9 +41,9 @@ func (h *Handler) QuotesByUser(c echo.Context) error {
 	}
 
 	type ModerationResponse struct {
-		ID             string `json:"id"`
-		Status         string `json:"status"`
-		ModeratorComment string `json:"comment"`
+		ID               string `json:"id,omitempty"`
+		Status           string `json:"status"`
+		ModeratorComment string `json:"comment,omitempty"`
 	}
 
 	type QuoteResponse struct {
@@ -51,7 +51,7 @@ func (h *Handler) QuotesByUser(c echo.Context) error {
 		Author     string              `json:"author"`
 		Text       string              `json:"text"`
 		Tags       []string            `json:"tags"`
-		Moderation *ModerationResponse `json:"moderation,omitempty"`
+		Moderation *ModerationResponse `json:"moderation"`
 	}
 
 	var response []QuoteResponse
@@ -60,9 +60,13 @@ func (h *Handler) QuotesByUser(c echo.Context) error {
 		if len(quote.Moderation) > 0 {
 			moderation := quote.Moderation[0]
 			moderationResponse = &ModerationResponse{
-				ID:             moderation.ID.String(),
-				Status:         moderation.Status,
+				ID:               moderation.ID.String(),
+				Status:           moderation.Status,
 				ModeratorComment: moderation.ModeratorComment,
+			}
+		} else {
+			moderationResponse = &ModerationResponse{
+				Status: "pending",
 			}
 		}
 
