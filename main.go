@@ -41,7 +41,7 @@ func main() {
 	if os.Getenv("RUNTIME_PRODUCTION") != "true" {
 		// Add CORS middleware
 		e.Use(echoMw.CORSWithConfig(echoMw.CORSConfig{
-			AllowOrigins: []string{"http://localhost:5173"}, // Replace with your frontend's origin
+			AllowOrigins: []string{"http://localhost:5173"},
 			AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 			AllowCredentials: true,
@@ -49,7 +49,7 @@ func main() {
 	} else {
 		// Add CORS middleware
 		e.Use(echoMw.CORSWithConfig(echoMw.CORSConfig{
-			AllowOrigins: []string{"https://quoter.snnlab.ru/"}, // Replace with your frontend's origin
+			AllowOrigins: []string{"https://quoter.snnlab.ru/"},
 			AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 			AllowCredentials: true,
