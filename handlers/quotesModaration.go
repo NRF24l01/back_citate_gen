@@ -15,7 +15,7 @@ import (
 func (h *Handler) ModerationGet(c echo.Context) error {
 	var quotes []models.Quote
 	if err := h.DB.Preload("Moderation").
-		Joins("LEFT JOIN moderations ON quotes.id = moderations.quote_id AND moderations.status = 'approved'").
+		Joins("LEFT JOIN moderations ON quotes.id = moderations.quote_id AND (moderations.status = 'approved' OR moderations.status = 'rejected')").
 		Where("moderations.id IS NULL").
 		Find(&quotes).Error; err != nil {
 		log.Printf("Error fetching unmoderated quotes: %v", err)
