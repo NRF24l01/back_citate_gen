@@ -12,4 +12,5 @@ func RegisterRoutes(e *echo.Echo, h *handlers.Handler) {
 	RegisterQuoteModerationRoutes(e, h)
 	RegisterQuotePublicRoutes(e, h)
 	RegisterQuotePersonalRoutes(e, h)
+	RegisterAutocompleteRoutes(e, h)
 }
