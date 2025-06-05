@@ -16,6 +16,8 @@ tags:
     description: Endpoints for personalized quote recommendations
   - name: Public Quotes
     description: Endpoints for accessing public quotes
+  - name: Autocomplete
+    description: Endpoints for autocomplete suggestions
 paths:
   /auth/register:
     post:
@@ -366,3 +368,33 @@ paths:
                       type: string
                       format: uuid
                       example: "550e8400-e29b-41d4-a716-446655440000"
+  /autocomplete/authors:
+    get:
+      tags:
+        - Autocomplete
+      summary: Get all available authors for autocomplete
+      responses:
+        '200':
+          description: List of all authors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: "Magister"
+  /autocomplete/tags:
+    get:
+      tags:
+        - Autocomplete
+      summary: Get all available tags for autocomplete
+      responses:
+        '200':
+          description: List of all tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: "motivation"
