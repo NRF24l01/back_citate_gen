@@ -74,6 +74,15 @@ func (h *Handler) GetPersonalQuotesHistory(c echo.Context) error {
 		log.Printf("Error fetching user's quote history: %v", err)
 		return c.JSON(http.StatusInternalServerError, schemas.ErrorMessage{Error: "An error occurred while fetching the quote history"})
 	}
+	
+	if quotes == nil {
+		quotes = make([]struct {
+			ID     string   `json:"id"`
+			Text   string   `json:"text"`
+			Author string   `json:"author"`
+			Tags   []string `json:"tags"`
+		}, 0)
+	}
 
 	return c.JSON(http.StatusOK, quotes)
 }
