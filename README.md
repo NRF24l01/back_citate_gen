@@ -29,9 +29,13 @@ This project is a backend service for generating citations. It provides an API t
     ```
 
 ### Prod
+*WHEN RUN WITH FRONTEND, YOU SHOULD CREATE NETWORK*
+```shell
+docker network create quoter_net
+```
 #### Just docker
 ```bash
-docker pull ghcr.io/nrf24l01/back_citate_gen/backend:latest
+docker pull ghcr.io/nrf24l01/back_citate_gen/go-build:latest
 ```
 #### Docker compose
 ```bash

@@ -1,12 +1,10 @@
 networks:
-  quoter-net:
-    driver: bridge
+  quoter_net:
+    external: true
 
 services:
   quoter-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/nrf24l01/back_citate_gen/go-build:latest
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:1323/ping"]
       interval: 10s
@@ -15,7 +13,7 @@ services:
       start_period: 10s
     restart: "no"
     networks:
-      - quoter-net
+      - quoter_net
     ports:
       - "3001:1323"
     env_file:
@@ -41,7 +39,7 @@ services:
     expose:
       - "5432"
     networks:
-      - quoter-net
+      - quoter_net
     volumes:
       - postgres_quoter_data:/var/lib/postgresql/data
     healthcheck:
@@ -49,6 +47,16 @@ services:
       interval: 5s
       retries: 5
     command: ["postgres", "-c", "listen_addresses=*"]
+  
+  watchtower-quoter-backend:
+    image: containrrr/watchtower
+    container_name: watchtower-quoter-backend
+    restart: unless-stopped
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   postgres_quoter_data:
